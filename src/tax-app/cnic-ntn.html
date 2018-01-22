@@ -1,0 +1,107 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+
+<dom-module id="cnic-ntn">
+    <template>
+        <style>
+            :host {
+                display: block
+            }
+        </style>
+       {{output}}
+    </template>
+
+    <script>
+        /**
+         * `cnic-ntn` Description
+         *
+         * @summary ShortDescription.
+         * @customElement
+         * @polymer
+         * @extends {Polymer.Element}
+         */
+        class CnicNtnConverter extends Polymer.Element {
+            /**
+             * String providing the tag name to register the element under.
+             */
+            static get is() {
+                return 'cnic-ntn';
+            }
+
+            /**
+             * Object describing property-related metadata used by Polymer features
+             */
+            static get properties() {
+                return {
+                    input:{
+                        type:String
+                    },
+                    output:{
+                        type:String,
+                        notify: true
+                    }
+                };
+            }
+
+            /**
+             * Instance of the element is created/upgraded. Use: initializing state,
+             * set up event listeners, create shadow dom.
+             * @constructor
+             */
+            constructor() {
+                super();
+            }
+
+            /**
+             * Use for one-time configuration of your component after local DOM is initialized. 
+             */
+            ready() {
+                super.ready();
+
+                Polymer.RenderStatus.afterNextRender(this, function() {
+                    
+                });
+            }
+
+        /**
+          * Array of strings describing multi-property observer methods and their
+          * dependant properties
+          */
+        static get observers() {
+            return [
+                '_computeOutput(input)'
+            ];
+        }
+
+        _computeOutput(value) {
+
+
+                if (value) {
+                    let output = value;
+                    output = output.trim();
+                    if (this._isCnic(output)) {
+                        output = "CNIC " + output;
+                    } else if (this._IsNtn(output)) {
+                        output = "NTN " + output;
+                    }
+
+                    this.set('output', output);
+                }
+
+
+            }
+
+        _IsNtn(value){
+            let pattern = new RegExp("[0-9][0-9][0-9][0-9][0-9][0-9][0-9]-[0-9]");
+            return pattern.test(value);
+        }
+
+        _isCnic(value){
+            let pattern = new RegExp("[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]");
+            return pattern.test(value);
+        }
+
+        }
+
+        window.customElements.define(CnicNtnConverter.is, CnicNtnConverter);
+    </script>
+</dom-module>

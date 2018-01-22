@@ -1,0 +1,6 @@
+{
+  "name": "tax-app",
+  "short_name": "tax-app",
+  "start_url": "/",
+  "display": "standalone"
+}

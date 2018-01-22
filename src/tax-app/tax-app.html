@@ -1,0 +1,208 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../../bower_components/promise-polyfill/promise-polyfill-lite.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-search/paper-search-bar.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="cnic-ntn.html">
+<link rel="import" href="tax-amount.html">
+
+<dom-module id="tax-app">
+  <template>
+    <style>
+       :host {
+        display: block;
+      }
+
+      app-header {
+        background-color: #0b8043;
+        color: white;
+        --app-header-background-front-layer: {
+          background-color: #4285f4;
+        }
+        ;
+      }
+
+      app-header paper-icon-button {
+        --paper-icon-button-ink-color: white;
+      }
+
+      iron-list {
+        background-color: var(--paper-grey-200, #eee);
+        padding-bottom: 16px;
+        @apply --layout-flex;
+      }
+
+      .item {
+        @apply --layout-horizontal;
+        margin: 16px 16px 0 16px;
+        padding: 20px;
+        border-radius: 8px;
+        background-color: white;
+        border: 1px solid #ddd;
+      }
+
+      .avatar {
+        height: 40px;
+        width: 40px;
+        border-radius: 20px;
+        box-sizing: border-box;
+        background-color: #DDD;
+      }
+
+      .pad {
+        padding: 0 16px;
+        @apply --layout-flex;
+        @apply --layout-vertical;
+      }
+
+      .primary {
+        font-size: 16px;
+        font-weight: bold;
+      }
+
+      .secondary {
+        font-size: 14px;
+      }
+
+      .dim {
+        color: gray;
+      }
+
+      .mainHeader [main-title] {
+        font-weight: 100;
+        margin: 0 0 0 40px;
+      }
+
+      .mainHeader [condensed-title] {
+        font-weight: 80;
+        margin-left: 30px;
+      }
+
+      .mainHeader [condensed-title] i {
+        font-style: normal;
+        font-weight: 50;
+      }
+
+      app-toolbar.tall {
+        height: 40px;
+      }
+
+      app-drawer-layout:not([narrow]) [drawer-toggle] {
+        display: none;
+      }
+      .searchButton {
+
+        margin:auto;
+        display:block;
+        width: 10%;
+        margin-top: 10px;
+        text-align: center;
+        
+      }
+      .clear {
+        clear: both;
+      }
+
+      #err-toast {
+    --paper-toast-background-color: red;
+    --paper-toast-color: white;
+  }
+    </style>
+    <iron-ajax id="searchApi" url="{{url}}" on-response="_handleResponse"  handle-as="json"></iron-ajax>
+    
+    <app-drawer-layout>
+      <app-header-layout>
+        <app-header class="mainHeader" condenses fixed effects="resize-title blend-background waterfall" slot="header">
+          <app-toolbar>
+
+            <h4 condensed-title>Tax directory 2016</h4>
+
+          </app-toolbar>
+          <app-toolbar class="tall">
+            <h2 main-title>Tax directory 2016</h2>
+          </app-toolbar>
+        </app-header>
+        <paper-search-bar hide-filter-button placeholder="Search here" query="{{searchText}}"></paper-search-bar>
+        </paper-search-panel>
+        <paper-button on-tap="_onSearch" raised class="green searchButton">Search</paper-button>
+        <paper-toast id="err-toast" text="No Record Found!" class="fit-bottom"></paper-toast>
+        <div class="clear"></div>
+        <iron-list items="[[data]]" as="item" scroll-target="document">
+          <template>
+            <div>
+              <div class="item" tabindex$="[[tabIndex]]">
+                <div class="pad">
+                  <div class="primary">[[item.name]]</div>
+                  <div class="secondary"> <cnic-ntn input={{item.cnic_ntn}} ></cnic-ntn></div>
+                  <div class="secondary dim"><tax-amount amount="{{item.amount}}"></tax-amount></div>
+                </div>
+                <iron-icon icon$="[[iconForItem(item)]]"></iron-icon>
+              </div>
+            </div>
+          </template>
+        </iron-list>
+      </app-header-layout>
+    </app-drawer-layout>
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+
+    const apiURL = "http://digitalfactory.pk/tax/api/api.php?searchText=";
+
+    class TaxApp extends Polymer.Element {
+      static get is() { return 'tax-app'; }
+      static get properties() {
+        return {
+          data: {
+            type: Array
+          }
+        };
+      }
+      /**
+        * Instance of the element is created/upgraded. Useful for initializing
+        * state, set up event listeners, create shadow dom.
+        * @constructor
+       */
+      constructor() {
+        super();
+
+
+      }
+
+      _onSearch() {
+
+          this.set("data",[])
+          if (this.searchText) {
+            this.url = apiURL + this.searchText;
+            this.$.searchApi.generateRequest();
+          }
+        }
+
+        _handleResponse(event, request){
+          if(request.response.length==0){
+            this.$['err-toast'].open();
+          }else{
+            this.set("data",request.response);
+          }
+        }
+
+
+    }
+
+    window.customElements.define(TaxApp.is, TaxApp);
+  </script>
+</dom-module>
